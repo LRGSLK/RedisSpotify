@@ -71,7 +71,6 @@ public class APISpotify {
 	                JsonObject artist = artists.get(i).getAsJsonObject();
 	                String id = artist.get("id").getAsString();
 	                String nombre = artist.get("name").getAsString();
-	                // Corrección en la obtención del género
 	                JsonArray genresArray = artist.getAsJsonArray("genres");
 	                String genero = (genresArray != null && genresArray.size() > 0) ? genresArray.get(0).getAsString() : "Unknown";
 	                int popularidad = artist.get("popularity").getAsInt();
@@ -93,7 +92,7 @@ public class APISpotify {
 	 * @param artistId ID del artista para obtener información.
 	 * @return Información detallada del artista en formato JSON.
 	 * @throws Exception Si hay un error durante la solicitud de información del
-	 *                   artista.
+	 * artista.
 	 */
 	static String getArtistInfo(String artistId) throws Exception {
 		String accessToken = getAccessToken();
