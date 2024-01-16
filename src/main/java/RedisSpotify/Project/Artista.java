@@ -7,45 +7,72 @@ package RedisSpotify.Project;
  */
 public class Artista {
 
- 
-    private String id;
-    private String nombre;
+	private String id;
+	private String nombre;
+	private String genero;
+	private int popularidad;
+	private int seguidores;
 
-    /**
-     * Constructor para la clase Artista.
-     *
-     * @param id     Identificador único del artista.
-     * @param nombre Nombre del artista.
-     */
-    public Artista(String id, String nombre) {
-        this.id = id;
-        this.nombre = nombre;
-    }
-    
-    // GETTER Y  SETTER
-    public String getId() {
-        return id;
-    }
+	/**
+	 * Constructor para la clase Artista.
+	 *
+	 * @param id     Identificador único del artista.
+	 * @param nombre Nombre del artista.
+	 */
+	
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	public String getGenero() {
+		return genero;
+	}
 
-    public String getNombre() {
-        return nombre;
-    }
+	public Artista(String id, String nombre, String genero, int popularidad, int seguidores) {
+		this.id = id;
+		this.nombre = nombre;
+		this.genero = genero;
+		this.popularidad = popularidad;
+		this.seguidores = seguidores;
+	}
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+	public void setGenero(String genero) {
+		this.genero = genero;
+	}
 
-    /**
-     * Sobrescribe el método toString para obtener una representación en cadena del objeto Artista.
-     *
-     * @return Representación en cadena del objeto Artista.
-     */
-    @Override
-    public String toString() {
-        return "Artista [id = " + id + ", nombre = " + nombre + "]";
-    }
+	public int getPopularidad() {
+		return popularidad;
+	}
+
+	public void setPopularidad(int popularidad) {
+		this.popularidad = popularidad;
+	}
+
+	public int getSeguidores() {
+		return seguidores;
+	}
+
+	public void setSeguidores(int seguidores) {
+		this.seguidores = seguidores;
+	}
+
+	// GETTER Y SETTER
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	@Override
+	public String toString() {
+		return "Artista [id=" + id + ", nombre=" + nombre + ", genero=" + genero + ", popularidad=" + popularidad
+				+ ", seguidores=" + seguidores + "]";
+	}
 }

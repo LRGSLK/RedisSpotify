@@ -52,32 +52,39 @@ public class APISpotify {
 	 * @param nombreArtista Nombre del artista a buscar.
 	 * @return Lista de objetos Artista con información sobre el artista encontrado.
 	 */
-	static List<Artista> getSampleArtistIds(String accessToken, String nombreArtista) {
-		List<Artista> artistas = new ArrayList<>();
-		try {
-			HttpClient client = HttpClients.createDefault();
-			String query = nombreArtista;
-			HttpGet request = new HttpGet("https://api.spotify.com/v1/search?q="
-					+ URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=artist");
+	static List<Artista> getArtistInfo(String accessToken, String nombreArtista) {
+	    List<Artista> artistas = new ArrayList<>();
+	    try {
+	        HttpClient client = HttpClients.createDefault();
+	        HttpGet request = new HttpGet("https://api.spotify.com/v1/search?q="
+	                + URLEncoder.encode(nombreArtista, StandardCharsets.UTF_8) + "&type=artist");
 
-			request.setHeader("Authorization", "Bearer " + accessToken);
+	        request.setHeader("Authorization", "Bearer " + accessToken);
 
-			HttpResponse response = client.execute(request);
-			String json = EntityUtils.toString(response.getEntity());
-			JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
-			JsonArray artists = jsonObject.getAsJsonObject("artists").getAsJsonArray("items");
+	        HttpResponse response = client.execute(request);
+	        String json = EntityUtils.toString(response.getEntity());
+	        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
+	        JsonArray artists = jsonObject.getAsJsonObject("artists").getAsJsonArray("items");
 
-			for (int i = 0; i < artists.size(); i++) {
-				JsonObject artist = artists.get(i).getAsJsonObject();
-				String id = artist.get("id").getAsString();
-				String nombre = artist.get("name").getAsString();
-				artistas.add(new Artista(id, nombre));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	        if (artists != null) {
+	            for (int i = 0; i < 4; i++) {
+	                JsonObject artist = artists.get(i).getAsJsonObject();
+	                String id = artist.get("id").getAsString();
+	                String nombre = artist.get("name").getAsString();
+	                // Corrección en la obtención del género
+	                JsonArray genresArray = artist.getAsJsonArray("genres");
+	                String genero = (genresArray != null && genresArray.size() > 0) ? genresArray.get(0).getAsString() : "Unknown";
+	                int popularidad = artist.get("popularity").getAsInt();
+	                int seguidores = artist.getAsJsonObject("followers").get("total").getAsInt();
 
-		return artistas;
+	                artistas.add(new Artista(id, nombre, genero, popularidad, seguidores));
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return artistas;
 	}
 
 	/**

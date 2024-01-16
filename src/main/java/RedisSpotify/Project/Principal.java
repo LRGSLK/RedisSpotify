@@ -1,8 +1,11 @@
 package RedisSpotify.Project;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Transaction;
 
 /**
  * Clase principal que ejecuta la aplicación de búsqueda de artistas en Spotify
@@ -31,7 +34,7 @@ public class Principal {
 				String nombreArtista = scanner.nextLine();
 
 				// Obtener la lista de artistas a partir del nombre
-				artistIds = APISpotify.getSampleArtistIds(accessToken, nombreArtista);
+				artistIds = APISpotify.getArtistInfo(accessToken, nombreArtista);
 
 				// Imprimir y almacenar cada artista en Redis
 				for (Artista ar : artistIds) {
@@ -52,15 +55,28 @@ public class Principal {
 	 * @param artista Objeto Artista que se va a almacenar.
 	 */
 	private static void guardarArtistaRedis(Jedis jedis, Artista artista) {
-		String key = "artista:" + artista.getId();
-		String nombre = artista.getNombre();
+		 String artistKey = "artista:" + artista.getId();
+		    Map<String, String> artistData = new HashMap<>();
+		    artistData.put("nombre", artista.getNombre());
+		    artistData.put("genero", artista.getGenero());
+		    artistData.put("popularidad", String.valueOf(artista.getPopularidad()));
+		    artistData.put("seguidores", String.valueOf(artista.getSeguidores()));
 
+		    String indexKey = "indices:artistas";
 		// Iniciar una transacción para almacenar la información del artista en Redis
-		try {
-			jedis.set(key, nombre);
-		} catch (Exception e) {
-			// Manejar la excepción en caso de error durante la transacción
-			e.printStackTrace();
+		    Transaction t = jedis.multi();
+		    try {
+		        // Almacenar la información del artista
+		        t.hmset(artistKey, artistData);
+		        // Agregar la clave del artista al índice
+		        t.sadd(indexKey, artistKey);
+
+		        // Ejecutar la transacción
+		        t.exec();
+		    } catch (Exception e) {
+		        // En caso de error, descartar la transacción
+		        t.discard();
+		        e.printStackTrace();
+		    }
 		}
-	}
 }
