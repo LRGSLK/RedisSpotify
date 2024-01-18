@@ -86,21 +86,53 @@ public class APISpotify {
 	    return artistas;
 	}
 
-	/**
-	 * Obtiene información detallada sobre un artista específico en base a su ID.
-	 *
-	 * @param artistId ID del artista para obtener información.
-	 * @return Información detallada del artista en formato JSON.
-	 * @throws Exception Si hay un error durante la solicitud de información del
-	 * artista.
-	 */
-	static String getArtistInfo(String artistId) throws Exception {
-		String accessToken = getAccessToken();
-		HttpClient client = HttpClients.createDefault();
-		HttpGet request = new HttpGet("https://api.spotify.com/v1/artists/" + artistId);
-		request.setHeader("Authorization", "Bearer " + accessToken);
+	static List<Playlist> searchPlaylistsByName(String accessToken, String playlistName) {
+	    List<Playlist> playlists = new ArrayList<>();
+	    try {
+	        // Primero, buscar playlists por nombre
+	        HttpClient client = HttpClients.createDefault();
+	        HttpGet searchRequest = new HttpGet("https://api.spotify.com/v1/search?q="
+	                + URLEncoder.encode(playlistName, StandardCharsets.UTF_8) + "&type=playlist");
 
-		HttpResponse response = client.execute(request);
-		return EntityUtils.toString(response.getEntity());
+	        searchRequest.setHeader("Authorization", "Bearer " + accessToken);
+
+	        HttpResponse searchResponse = client.execute(searchRequest);
+	        String searchJson = EntityUtils.toString(searchResponse.getEntity());
+	        
+	        JsonObject searchObject = JsonParser.parseString(searchJson).getAsJsonObject();
+	        JsonArray items = searchObject.getAsJsonObject("playlists").getAsJsonArray("items");
+
+	        // Luego, para cada playlist encontrada, obtener detalles y canciones
+	        for (int i = 0; i < 1; i++) {
+	            JsonObject item = items.get(i).getAsJsonObject();
+	            String id = item.get("id").getAsString();
+	            String nombre = item.get("name").getAsString();
+
+	            // Solicitud adicional para obtener canciones de la playlist
+	            HttpGet tracksRequest = new HttpGet("https://api.spotify.com/v1/playlists/" + id + "/tracks");
+	            tracksRequest.setHeader("Authorization", "Bearer " + accessToken);
+
+	            HttpResponse tracksResponse = client.execute(tracksRequest);
+	            String tracksJson = EntityUtils.toString(tracksResponse.getEntity());
+	           
+
+	            JsonObject tracksObject = JsonParser.parseString(tracksJson).getAsJsonObject();
+	            JsonArray tracks = tracksObject.getAsJsonArray("items");
+
+	            List<Cancion> canciones = new ArrayList<>();
+	            for (int j = 0; j < tracks.size(); j++) {
+	                JsonObject track = tracks.get(j).getAsJsonObject().getAsJsonObject("track");
+	                String trackId = track.get("id").getAsString();
+	                String trackName = track.get("name").getAsString();
+	                canciones.add(new Cancion(trackId, trackName));
+	            }
+
+	            playlists.add(new Playlist(id, nombre, canciones));
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return playlists;
 	}
 }

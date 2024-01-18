@@ -23,15 +23,16 @@ public class Principal {
 	public static void main(String[] args) {
 		try (Jedis jedis = new Jedis("localhost", 6379)) {
 			List<Artista> artistIds = null;
+			String accessToken = null;
 
 			try {
 				// Obtener el token de acceso de Spotify
-				String accessToken = APISpotify.getAccessToken();
+				 accessToken = APISpotify.getAccessToken();
 
 				// Solicitar al usuario el nombre del artista a buscar
-				Scanner scanner = new Scanner(System.in);
-				System.out.println("Introduce el nombre del artista a buscar:");
-				String nombreArtista = scanner.nextLine();
+				 Scanner scanner = new Scanner(System.in);
+					System.out.println("Introduce el nombre del artista a buscar:");
+					String nombreArtista = scanner.nextLine();
 
 				// Obtener la lista de artistas a partir del nombre
 				artistIds = APISpotify.getArtistInfo(accessToken, nombreArtista);
@@ -45,7 +46,32 @@ public class Principal {
 				// Manejar cualquier excepción ocurrida durante la ejecución
 				e.printStackTrace();
 			}
+			 try {
+				 Scanner scanner = new Scanner(System.in);
+					System.out.println("Introduce el nombre de PlayList a buscar:");
+					String nombrePlayList = scanner.nextLine();
+				String accessTokena = APISpotify.getAccessToken();
+				
+				 List<Playlist> foundPlaylists = APISpotify.searchPlaylistsByName(accessTokena,nombrePlayList);
+
+				    if (foundPlaylists != null && !foundPlaylists.isEmpty()) {
+				        for (Playlist playlist : foundPlaylists) {
+				            System.out.println("Playlist: " + playlist.getNombre());
+				            System.out.println("Canciones:");
+				            for (Cancion cancion : playlist.getCanciones()) {
+				                System.out.println(" - " + cancion.getNombre());
+				            }
+				            System.out.println();
+				        }
+				    } else {
+				        System.out.println("No se encontraron playlists.");
+				    }
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		 
 	}
 
 	/**
