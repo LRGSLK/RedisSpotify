@@ -1,10 +1,5 @@
 package RedisSpotify.Project;
 
-/**
- * Clase que representa un artista de Spotify con su identificador y nombre.
- *
- * @version 1.0
- */
 public class Artista {
 
 	private String id;
@@ -13,24 +8,16 @@ public class Artista {
 	private int popularidad;
 	private int seguidores;
 
-	/**
-	 * Constructor para la clase Artista.
-	 *
-	 * @param id     Identificador único del artista.
-	 * @param nombre Nombre del artista.
-	 */
-	
-
-	public String getGenero() {
-		return genero;
-	}
-
 	public Artista(String id, String nombre, String genero, int popularidad, int seguidores) {
 		this.id = id;
 		this.nombre = nombre;
 		this.genero = genero;
 		this.popularidad = popularidad;
 		this.seguidores = seguidores;
+	}
+
+	public String getGenero() {
+		return genero;
 	}
 
 	public void setGenero(String genero) {

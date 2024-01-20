@@ -27,51 +27,38 @@ public class Principal {
 
 			try {
 				// Obtener el token de acceso de Spotify
-				 accessToken = APISpotify.getAccessToken();
+				accessToken = APISpotify.getAccessToken();
+				Scanner scanner = new Scanner(System.in);
+				System.out.println("Introduce el nombre del album a buscar:");
+				String nombreAlbum = scanner.nextLine();
+				Album album = APISpotify.searchAlbumByName(accessToken, nombreAlbum);
+				System.out.println(album.toString());
 
-				// Solicitar al usuario el nombre del artista a buscar
-				 Scanner scanner = new Scanner(System.in);
-					System.out.println("Introduce el nombre del artista a buscar:");
-					String nombreArtista = scanner.nextLine();
+				Scanner scanner1 = new Scanner(System.in);
+				System.out.println("Introduce el nombre de la cacion a buscar:");
+				String nombreCacion = scanner1.nextLine();
+				Cancion cancion = APISpotify.searchSongsByName(accessToken, nombreCacion);
+				System.out.println(cancion.toString());
 
-				// Obtener la lista de artistas a partir del nombre
-				artistIds = APISpotify.getArtistInfo(accessToken, nombreArtista);
+				Scanner scanner2 = new Scanner(System.in);
+				System.out.println("Introduce el nombre de la Playlist a buscar:");
+				String nombrePlaylist = scanner2.nextLine();
+				Playlist playlist = APISpotify.searchPlaylistsByName(accessToken, nombrePlaylist);
+				System.out.println(playlist.toString());
 
-				// Imprimir y almacenar cada artista en Redis
-				for (Artista ar : artistIds) {
-					System.out.println(ar);
-					guardarArtistaRedis(jedis, ar);
-				}
+				Scanner scanner3 = new Scanner(System.in);
+				System.out.println("Introduce el nombre del Artista a buscar:");
+				String nombreArtista = scanner3.nextLine();
+				Artista artista = APISpotify.seachArtistByName(accessToken, nombreArtista);
+				System.out.println(artista.toString());
+
 			} catch (Exception e) {
 				// Manejar cualquier excepción ocurrida durante la ejecución
 				e.printStackTrace();
 			}
-			 try {
-				 Scanner scanner = new Scanner(System.in);
-					System.out.println("Introduce el nombre de PlayList a buscar:");
-					String nombrePlayList = scanner.nextLine();
-				String accessTokena = APISpotify.getAccessToken();
-				
-				 List<Playlist> foundPlaylists = APISpotify.searchPlaylistsByName(accessTokena,nombrePlayList);
 
-				    if (foundPlaylists != null && !foundPlaylists.isEmpty()) {
-				        for (Playlist playlist : foundPlaylists) {
-				            System.out.println("Playlist: " + playlist.getNombre());
-				            System.out.println("Canciones:");
-				            for (Cancion cancion : playlist.getCanciones()) {
-				                System.out.println(" - " + cancion.getNombre());
-				            }
-				            System.out.println();
-				        }
-				    } else {
-				        System.out.println("No se encontraron playlists.");
-				    }
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		}
-		 
+
 	}
 
 	/**
@@ -81,28 +68,46 @@ public class Principal {
 	 * @param artista Objeto Artista que se va a almacenar.
 	 */
 	private static void guardarArtistaRedis(Jedis jedis, Artista artista) {
-		 String artistKey = "artista:" + artista.getId();
-		    Map<String, String> artistData = new HashMap<>();
-		    artistData.put("nombre", artista.getNombre());
-		    artistData.put("genero", artista.getGenero());
-		    artistData.put("popularidad", String.valueOf(artista.getPopularidad()));
-		    artistData.put("seguidores", String.valueOf(artista.getSeguidores()));
+		String artistKey = "artista:" + artista.getNombre();
+		Map<String, String> artistData = new HashMap<>();
+		artistData.put("IdArtista", artista.getId());
+		artistData.put("genero", artista.getGenero());
+		artistData.put("popularidad", String.valueOf(artista.getPopularidad()));
+		artistData.put("seguidores", String.valueOf(artista.getSeguidores()));
 
-		    String indexKey = "indices:artistas";
+		String indexKey = "indices:artistas";
 		// Iniciar una transacción para almacenar la información del artista en Redis
-		    Transaction t = jedis.multi();
-		    try {
-		        // Almacenar la información del artista
-		        t.hmset(artistKey, artistData);
-		        // Agregar la clave del artista al índice
-		        t.sadd(indexKey, artistKey);
+		Transaction t = jedis.multi();
+		try {
+			// Almacenar la información del artista
+			t.hmset(artistKey, artistData);
+			// Agregar la clave del artista al índice
+			t.sadd(indexKey, artistKey);
 
-		        // Ejecutar la transacción
-		        t.exec();
-		    } catch (Exception e) {
-		        // En caso de error, descartar la transacción
-		        t.discard();
-		        e.printStackTrace();
-		    }
+			// Ejecutar la transacción
+			t.exec();
+		} catch (Exception e) {
+			// En caso de error, descartar la transacción
+			t.discard();
+			e.printStackTrace();
 		}
+	}
+
+	private static void actualizarGeneroArtistaRedis(Jedis jedis, String artistaId, String nuevoGenero) {
+		String artistKey = "artista:" + artistaId;
+
+		// Iniciar una transacción para actualizar la información del artista en Redis
+		Transaction t = jedis.multi();
+		try {
+			// Actualizar solo el campo 'genero' del artista
+			t.hset(artistKey, "genero", nuevoGenero);
+
+			// Ejecutar la transacción
+			t.exec();
+		} catch (Exception e) {
+			// En caso de error, descartar la transacción
+			t.discard();
+			e.printStackTrace();
+		}
+	}
 }

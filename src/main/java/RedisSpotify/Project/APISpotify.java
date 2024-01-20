@@ -15,6 +15,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -23,12 +24,7 @@ public class APISpotify {
 	private static final String clientId = "543191e2fffa48ba958c42ea57c49ec0";
 	private static final String clientSecret = "a4a4d78e02f04bf68f301a9ae1f627bb";
 
-	/**
-	 * Obtiene un token de acceso para realizar solicitudes a la API de Spotify.
-	 *
-	 * @return Token de acceso
-	 * @throws Exception Si hay un error durante la solicitud del token.
-	 */
+
 	static String getAccessToken() throws Exception {
 		HttpClient client = HttpClients.createDefault();
 		HttpPost post = new HttpPost("https://accounts.spotify.com/api/token");
@@ -45,15 +41,9 @@ public class APISpotify {
 		return jsonObject.get("access_token").getAsString();
 	}
 
-	/**
-	 * Obtiene información sobre un artista específico en base a su nombre.
-	 *
-	 * @param accessToken   Token de acceso para autenticar la solicitud.
-	 * @param nombreArtista Nombre del artista a buscar.
-	 * @return Lista de objetos Artista con información sobre el artista encontrado.
-	 */
-	static List<Artista> getArtistInfo(String accessToken, String nombreArtista) {
-	    List<Artista> artistas = new ArrayList<>();
+
+	static Artista seachArtistByName(String accessToken, String nombreArtista) {
+	    Artista artista = null;
 	    try {
 	        HttpClient client = HttpClients.createDefault();
 	        HttpGet request = new HttpGet("https://api.spotify.com/v1/search?q="
@@ -66,9 +56,8 @@ public class APISpotify {
 	        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
 	        JsonArray artists = jsonObject.getAsJsonObject("artists").getAsJsonArray("items");
 
-	        if (artists != null) {
-	            for (int i = 0; i < 4; i++) {
-	                JsonObject artist = artists.get(i).getAsJsonObject();
+	        if (artists != null)  {
+	                JsonObject artist = artists.get(0).getAsJsonObject();
 	                String id = artist.get("id").getAsString();
 	                String nombre = artist.get("name").getAsString();
 	                JsonArray genresArray = artist.getAsJsonArray("genres");
@@ -76,18 +65,17 @@ public class APISpotify {
 	                int popularidad = artist.get("popularity").getAsInt();
 	                int seguidores = artist.getAsJsonObject("followers").get("total").getAsInt();
 
-	                artistas.add(new Artista(id, nombre, genero, popularidad, seguidores));
-	            }
+	                artista =new Artista(id, nombre, genero, popularidad, seguidores);
 	        }
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
 
-	    return artistas;
+	    return artista;
 	}
 
-	static List<Playlist> searchPlaylistsByName(String accessToken, String playlistName) {
-	    List<Playlist> playlists = new ArrayList<>();
+	static Playlist searchPlaylistsByName(String accessToken, String playlistName) {
+	    Playlist playlist = null;
 	    try {
 	        // Primero, buscar playlists por nombre
 	        HttpClient client = HttpClients.createDefault();
@@ -99,12 +87,14 @@ public class APISpotify {
 	        HttpResponse searchResponse = client.execute(searchRequest);
 	        String searchJson = EntityUtils.toString(searchResponse.getEntity());
 	        
+	        
 	        JsonObject searchObject = JsonParser.parseString(searchJson).getAsJsonObject();
 	        JsonArray items = searchObject.getAsJsonObject("playlists").getAsJsonArray("items");
+	        
 
 	        // Luego, para cada playlist encontrada, obtener detalles y canciones
-	        for (int i = 0; i < 1; i++) {
-	            JsonObject item = items.get(i).getAsJsonObject();
+	        if (items.size() > 0) {
+	            JsonObject item = items.get(0).getAsJsonObject();
 	            String id = item.get("id").getAsString();
 	            String nombre = item.get("name").getAsString();
 
@@ -124,15 +114,146 @@ public class APISpotify {
 	                JsonObject track = tracks.get(j).getAsJsonObject().getAsJsonObject("track");
 	                String trackId = track.get("id").getAsString();
 	                String trackName = track.get("name").getAsString();
-	                canciones.add(new Cancion(trackId, trackName));
-	            }
+	                // Obtener nombres de artistas para cada canción
+	                List<String> artistasCancion = new ArrayList<>();
+	                JsonArray artistsCancion = track.getAsJsonArray("artists");
+	                for (JsonElement artistElem : artistsCancion) {
+	                    JsonObject artistObj = artistElem.getAsJsonObject();
+	                    artistasCancion.add(artistObj.get("name").getAsString());
+	                }
 
-	            playlists.add(new Playlist(id, nombre, canciones));
+	                canciones.add(new Cancion(trackId, trackName, artistasCancion)); // Asegúrate de que la clase Cancion pueda manejar artistas
+	             }
+
+	            playlist = new Playlist(id, nombre, canciones);
 	        }
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
 
-	    return playlists;
+	    return playlist;
 	}
+	 public static Album searchAlbumById(String accessToken, String albumId) {
+	        Album album = null;
+	        try {
+	            // Solicitar detalles del álbum
+	            HttpClient client = HttpClients.createDefault();
+	            HttpGet albumRequest = new HttpGet("https://api.spotify.com/v1/albums/"
+	                    + URLEncoder.encode(albumId, StandardCharsets.UTF_8));
+
+	            albumRequest.setHeader("Authorization", "Bearer " + accessToken);
+
+	            HttpResponse albumResponse = client.execute(albumRequest);
+	            String albumJson = EntityUtils.toString(albumResponse.getEntity());
+
+	            JsonObject albumObject = JsonParser.parseString(albumJson).getAsJsonObject();
+
+	            String id = albumObject.get("id").getAsString();
+	            String nombre = albumObject.get("name").getAsString();
+	            String fechaLanzamiento = albumObject.get("release_date").getAsString();
+
+	            // Obtener artistas del álbum
+	            List<String> artistas = new ArrayList<>();
+	            JsonArray artistsArray = albumObject.getAsJsonArray("artists");
+	            for (int i = 0; i < artistsArray.size(); i++) {
+	                JsonObject artist = artistsArray.get(i).getAsJsonObject();
+	                artistas.add(artist.get("name").getAsString());
+	            }
+
+	            // Obtener canciones del álbum
+	            List<Cancion> canciones = new ArrayList<>();
+	            JsonArray tracks = albumObject.getAsJsonObject("tracks").getAsJsonArray("items");
+	            for (int j = 0; j < tracks.size(); j++) {
+	                JsonObject track = tracks.get(j).getAsJsonObject();
+	                String trackId = track.get("id").getAsString();
+	                String trackName = track.get("name").getAsString();
+	                
+	                // Obtener nombres de artistas para cada canción
+	                List<String> artistasCancion = new ArrayList<>();
+	                JsonArray artistsCancion = track.getAsJsonArray("artists");
+	                for (JsonElement artistElem : artistsCancion) {
+	                    JsonObject artistObj = artistElem.getAsJsonObject();
+	                    artistasCancion.add(artistObj.get("name").getAsString());
+	                }
+
+	                canciones.add(new Cancion(trackId, trackName, artistasCancion)); // Asegúrate de que la clase Cancion pueda manejar artistas
+	           
+	            }
+
+	            album = new Album(id, nombre, artistas, fechaLanzamiento, canciones);
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+
+	        return album;
+	    }
+	 public static Album searchAlbumByName(String accessToken, String albumName) {
+		    Album album = null;
+		    try {
+		        // Buscar álbumes por nombre
+		        HttpClient client = HttpClients.createDefault();
+		        HttpGet searchRequest = new HttpGet("https://api.spotify.com/v1/search?q="
+		                + URLEncoder.encode(albumName, StandardCharsets.UTF_8) + "&type=album");
+
+		        searchRequest.setHeader("Authorization", "Bearer " + accessToken);
+
+		        HttpResponse searchResponse = client.execute(searchRequest);
+		        String searchJson = EntityUtils.toString(searchResponse.getEntity());
+
+		        JsonObject searchObject = JsonParser.parseString(searchJson).getAsJsonObject();
+		        JsonArray items = searchObject.getAsJsonObject("albums").getAsJsonArray("items");
+
+		        if (items.size() > 0) {
+		            JsonObject item = items.get(0).getAsJsonObject();
+		            String id = item.get("id").getAsString();
+		            return searchAlbumById(accessToken, id);
+		        }
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		    }
+
+		    return album;
+		}
+	  static Cancion searchSongsByName(String accessToken, String songName) {
+		    Cancion cancion = null;
+		    try {
+		        // Crear cliente HTTP y configurar la solicitud
+		        HttpClient client = HttpClients.createDefault();
+		        HttpGet searchRequest = new HttpGet("https://api.spotify.com/v1/search?q="
+		                + URLEncoder.encode(songName, StandardCharsets.UTF_8) + "&type=track");
+
+		        searchRequest.setHeader("Authorization", "Bearer " + accessToken);
+
+		        // Enviar solicitud y obtener respuesta
+		        HttpResponse searchResponse = client.execute(searchRequest);
+		        String searchJson = EntityUtils.toString(searchResponse.getEntity());
+
+		        // Parsear respuesta JSON y obtener canciones
+		        JsonObject searchObject = JsonParser.parseString(searchJson).getAsJsonObject();
+		        JsonArray items = searchObject.getAsJsonObject("tracks").getAsJsonArray("items");
+
+		        if (items.size() > 0) {
+		            JsonObject item = items.get(0).getAsJsonObject();
+		            String id = item.get("id").getAsString();
+		            String nombre = item.get("name").getAsString();
+
+		            // Obtener nombres de artistas
+		            JsonArray artists = item.getAsJsonArray("artists");
+		            List<String> nombresArtistas = new ArrayList<>();
+		            for (JsonElement artistElem : artists) {
+		                JsonObject artistObj = artistElem.getAsJsonObject();
+		                nombresArtistas.add(artistObj.get("name").getAsString());
+		            }
+
+		            // Crear y agregar objeto Cancion a la lista
+		             cancion = new Cancion(id, nombre, nombresArtistas); // Asume que Cancion tiene un constructor adecuado
+		           
+		        }
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		    }
+
+		    return cancion;
+		}
 }
