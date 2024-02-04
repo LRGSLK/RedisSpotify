@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Clase que contiene métodos para gestionar la base de datos RedisSpotify.
  */
@@ -22,6 +25,8 @@ public class Metodos {
 	/**
      * Método protegido para la creación de una base de datos en un espacio específico.
      */
+	private static final Logger LOGGER = LoggerFactory.getLogger(Metodos.class);
+
 	protected static Jedis creacionBD(int SelectDB) {
 	  
 	    Jedis jedis=new Jedis("localhost",6379,SelectDB);
@@ -29,7 +34,7 @@ public class Metodos {
 	        jedis.select(SelectDB);
 	        System.out.println("Base de datos seleccionada con exito en el entorno " + SelectDB);
 	    } catch (Exception e) {
-	        System.err.println("Error en la seleccion  de la base de datos: " + e.getMessage());
+	        LOGGER.error("Error en la seleccion  de la base de datos: " + e.getMessage());
 	    }
 		return jedis;
 	}
@@ -56,7 +61,9 @@ public class Metodos {
 					System.out.println(lista);
 					RedisManager.guardarArtistaRedis(jedis, lista);
 				} catch (Exception e) {
-					e.printStackTrace();
+				    LOGGER.error("Error al buscar o guardar el Artista en Redis. Asegúrese de que el nombre de la playlist es correcto y que el servicio de Redis está funcionando correctamente."+e.getMessage());
+
+
 				}
 	        } else if (opcion.contains("cancion")) {
 	            System.out.println("Has seleccionado Canción.");
@@ -68,7 +75,8 @@ public class Metodos {
 					System.out.println(lista);
 					RedisManager.guardarCancionRedis(jedis, lista);
 				} catch (Exception e) {
-					e.printStackTrace();
+				    LOGGER.error("Error al buscar o guardar La cancion en Redis. Asegúrese de que el nombre de la playlist es correcto y que el servicio de Redis está funcionando correctamente."+e.getMessage());
+
 				}
 	        } else if (opcion.contains("album")) {
 	            System.out.println("Has seleccionado Album.");
@@ -80,7 +88,7 @@ public class Metodos {
 					System.out.println(lista);
 					RedisManager.guardarAlbumRedis(jedis, lista);
 				} catch (Exception e) {
-					e.printStackTrace();
+				    LOGGER.error("Error al buscar o guardar el album en Redis. Asegúrese de que el nombre de la playlist es correcto y que el servicio de Redis está funcionando correctamente."+e.getMessage());
 				}
 	        } else if (opcion.contains("playlist")) {
 	            System.out.println("Has seleccionado Playlist.");
@@ -92,14 +100,16 @@ public class Metodos {
 					System.out.println(lista);
 					RedisManager.guardarPlaylistRedis(jedis, lista);
 				} catch (Exception e) {
-					e.printStackTrace();
+				    LOGGER.error("Error al buscar o guardar la Playlist en Redis. Asegúrese de que el nombre de la playlist es correcto y que el servicio de Redis está funcionando correctamente."+e.getMessage());
+
 				}
 	        } else {
 	            System.out.println("Opción no válida. Introduzca una opción valida.");
 	        }
 	    } while (!opcion.contains("artista") && !opcion.contains("cancion") && !opcion.contains("album") && !opcion.contains("playlist"));
 	} catch (Exception e) {
-			e.printStackTrace();
+	    LOGGER.error("Error al obtener el acceso de la API"+e.getMessage());
+
 	}   
 }	
 	 /**
@@ -107,9 +117,8 @@ public class Metodos {
      */
 	protected static void modificar(Jedis jedis) {
 		Scanner sc = new Scanner(System.in);
-		String accessToken = null;
 		try {
-			accessToken = APISpotify.obtenerAcceso();
+	
 			String opcion;	
 		do {
 	        System.out.println("Ingresa el nombre de la clase para saber en qué tabla modificar:");
@@ -123,7 +132,7 @@ public class Metodos {
 					String nombreArtista = sc.nextLine();
 					RedisManager.modificarArtista(jedis, nombreArtista);
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.error("Se ha producido un error durante el proceso de modificación de artista Por favor, revise la entrada proporcionada y asegurate que  se encuentra en la BD" +e.getMessage());
 				}
 	        }else if (opcion.contains("cancion")) {
 	            System.out.println("Has seleccionado Cancion.");
@@ -132,7 +141,7 @@ public class Metodos {
 					String nombreArtista = sc.nextLine();
 					RedisManager.modificarCancion(jedis, nombreArtista);		
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.error("Se ha producido un error durante el proceso de modificación de cancion. Por favor, revise la entrada proporcionada y asegurate que  se encuentra en la BD" +e.getMessage());
 				}
 	        } else if (opcion.contains("album")) {
 	            System.out.println("Has seleccionado Album.");
@@ -141,7 +150,7 @@ public class Metodos {
 					String nombreArtista = sc.nextLine();
 					RedisManager.modificarAlbum(jedis, nombreArtista);
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.error("Se ha producido un error durante el proceso de modificación de album. Por favor, revise la entrada proporcionada y asegurate que  se encuentra en la BD" +e.getMessage());
 				}
 	        } else if (opcion.contains("playlist")) {
 	            System.out.println("Has seleccionado Playlist.");
@@ -150,14 +159,14 @@ public class Metodos {
 					String nombreArtista = sc.nextLine();
 					RedisManager.modificarPlaylist(jedis, nombreArtista);
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.error("Se ha producido un error durante el proceso de modificación de playlist. Por favor, revise la entrada proporcionada y asegurate que  se encuentra en la BD" +e.getMessage());
 				}
 	        } else {
 	            System.out.println("Opción no válida. Introduzca una opción valida.");
 	        }
 	    } while (!opcion.contains("artista") && !opcion.contains("cancion") && !opcion.contains("album") && !opcion.contains("playlist"));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("Se ha producido un error inesperado durante el proceso de modificación. Por favor, revise la entrada proporcionada y asegúrese de que el sistema de base de datos Redis está operativo."+e.getMessage());
 		}   
 	}
 	/**
@@ -165,9 +174,9 @@ public class Metodos {
      */
 	protected static void borrar(Jedis jedis) {
 		Scanner sc = new Scanner(System.in);
-		String accessToken = null;
+	
 		try {
-			accessToken = APISpotify.obtenerAcceso();
+
 			String opcion;	
 		do {
 	        System.out.println("Ingresa el nombre de la clase para saber en qué tabla insertar:");
@@ -180,7 +189,7 @@ public class Metodos {
 					String nombre = sc.nextLine();
 					RedisManager.borrarArtista(jedis, nombre);
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.error("Se ha producido un error durante el proceso de borrado de artista. Por favor, revise la entrada proporcionada y asegurate que  se encuentra en la BD" +e.getMessage());
 				}
 	        }else if (opcion.contains("cancion")) {
 	            System.out.println("Has seleccionado Canción.");
@@ -189,7 +198,7 @@ public class Metodos {
 					String nombre = sc.nextLine();
 					RedisManager.borrarCancion(jedis, nombre);
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.error("Se ha producido un error durante el proceso de borrado de cancion. Por favor, revise la entrada proporcionada y asegurate que  se encuentra en la BD" +e.getMessage());
 				}
 	        } else if (opcion.contains("album")) {
 	            System.out.println("Has seleccionado Album.");
@@ -198,7 +207,7 @@ public class Metodos {
 					String nombre = sc.nextLine();
 					RedisManager.borrarAlbum(jedis, nombre);
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.error("Se ha producido un error durante el proceso de borrado de album. Por favor, revise la entrada proporcionada y asegurate que  se encuentra en la BD" +e.getMessage());
 				}
 	        } else if (opcion.contains("playlist")) {
 	            System.out.println("Has seleccionado Playlist.");
@@ -207,14 +216,14 @@ public class Metodos {
 					String nombre = sc.nextLine();
 					RedisManager.borrarPlaylist(jedis, nombre);
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.error("Se ha producido un error durante el proceso de borrado de playlist. Por favor, revise la entrada proporcionada y asegurate que  se encuentra en la BD" +e.getMessage());
 				}
 	        } else {
 	            System.out.println("Opción no válida. Introduzca una opción valida.");
 	        }
 	    } while (!opcion.contains("artista") && !opcion.contains("cancion") && !opcion.contains("album") && !opcion.contains("playlist"));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("Se ha producido un error inesperado durante el proceso de error. Por favor, revise la entrada proporcionada y asegúrese de que el sistema de base de datos Redis está operativo."+e.getMessage());
 	}   
 	}
 	/**
@@ -222,10 +231,10 @@ public class Metodos {
      */
 	protected static void consulta(Jedis jedis) {
 		Scanner sc = new Scanner(System.in);
-		String accessToken = null;
+	
 		int op;
 		try {
-			accessToken = APISpotify.obtenerAcceso();
+	
 			String opcion;	
 			do {
 		        System.out.println("¿Que clase desea consultar?");
@@ -257,14 +266,14 @@ public class Metodos {
 		        }
 		    } while (!opcion.contains("artista") && !opcion.contains("cancion") && !opcion.contains("album") && !opcion.contains("playlist"));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("Se ha producido un error inesperado durante el proceso de consulta. Por favor, revise la entrada proporcionada y asegúrese de que el sistema de base de datos Redis está operativo."+e.getMessage());
 	}   
 }	
 	/**
      * Método protegido para borrar toda la base de datos.
      */
 	protected static void borrarBD(Jedis jedis) {
-		//Jedis jedis=new Jedis("localhost",6379);
+
 	    Scanner sc = new Scanner(System.in);
 	    String opcion;
 	    System.out.println("¿Desea borrar la BD?");

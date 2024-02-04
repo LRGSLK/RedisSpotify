@@ -642,7 +642,7 @@ public class RedisManager {
                 Map<String, String> cancionData = jedis.hgetAll("cancion:" + cancionId);
                 System.out.println("- " + cancionData.get("nombre") + " (Artistas: " + cancionData.get("artistas") + ")");
             }
-        }else System.out.println("ESTA VACIO MAN");
+        }else System.out.println("Esta vacio");
     }
 
     //-------------------------------------------CONSULTAS-PLAYLIST
