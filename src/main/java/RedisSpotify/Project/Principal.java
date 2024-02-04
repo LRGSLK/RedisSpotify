@@ -7,7 +7,6 @@ import redis.clients.jedis.Jedis;
 public class Principal {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        int num=1;
         int opcion;
         Jedis jedis =null;
 
