@@ -18,9 +18,7 @@ public class Metodos {
      *
      * @param args los argumentos de la línea de comandos (no se utiliza en este caso)
      */
-	public static void main(String[] args) {
 
-	}
 	/**
      * Método protegido para la creación de una base de datos en un espacio específico.
      */
@@ -52,7 +50,7 @@ public class Metodos {
 	            System.out.println("Has seleccionado Artista.");
 	            Artista lista = null;
 	            try {
-					System.out.println("Introduce el nombre del artista a buscar:");
+					System.out.println("Introduce el nombre del artista que desea insertar:");
 					String nombre = sc.nextLine();
 					lista = APISpotify.buscarArtistaPorNombre(accessToken, nombre);
 					System.out.println(lista);
@@ -64,7 +62,7 @@ public class Metodos {
 	            System.out.println("Has seleccionado Canción.");
 	            Cancion lista = null;
 	            try {
-					System.out.println("Introduce el nombre de la cancion a buscar:");
+					System.out.println("Introduce el nombre de la cancion que desea insertar:");
 					String nombre = sc.nextLine();
 					lista = APISpotify.searchSongsByName(accessToken, nombre);
 					System.out.println(lista);
@@ -76,7 +74,7 @@ public class Metodos {
 	            System.out.println("Has seleccionado Album.");
 	            Album lista = null;
 	            try {
-					System.out.println("Introduce el nombre del album a buscar:");
+					System.out.println("Introduce el nombre del album que desea insertar:");
 					String nombre = sc.nextLine();
 					lista = APISpotify.buscarAlbumPorNombre(accessToken, nombre);
 					System.out.println(lista);
@@ -88,7 +86,7 @@ public class Metodos {
 	            System.out.println("Has seleccionado Playlist.");
 	            Playlist lista = null;
 	            try {
-					System.out.println("Introduce el nombre del playlist a buscar:");
+					System.out.println("Introduce el nombre de la playlist que desea insertar:");
 					String nombre = sc.nextLine();
 					lista = APISpotify.buscarPlayListPorNombre(accessToken, nombre);
 					System.out.println(lista);
@@ -114,14 +112,14 @@ public class Metodos {
 			accessToken = APISpotify.obtenerAcceso();
 			String opcion;	
 		do {
-	        System.out.println("Ingresa el nombre de la clase para saber en qué tabla insertar:");
+	        System.out.println("Ingresa el nombre de la clase para saber en qué tabla modificar:");
 	        System.out.println("#Tienes las tablas Artista, Cancion, Album y Playlist");
 	        opcion = sc.nextLine().toLowerCase(); 
 	        String nombre;
 	        if (opcion.contains("artista")) {
 	            System.out.println("Has seleccionado Artista.");
 	            try {
-					System.out.println("Introduce el nombre del artista a buscar:");
+					System.out.println("Introduce el nombre del artista que desea modificar:");
 					String nombreArtista = sc.nextLine();
 					RedisManager.modificarArtista(jedis, nombreArtista);
 				} catch (Exception e) {
@@ -130,7 +128,7 @@ public class Metodos {
 	        }else if (opcion.contains("cancion")) {
 	            System.out.println("Has seleccionado Cancion.");
 	            try {
-					System.out.println("Introduce el nombre de la cancion a buscar:");
+					System.out.println("Introduce el nombre de la cancion que desea modificar:");
 					String nombreArtista = sc.nextLine();
 					RedisManager.modificarCancion(jedis, nombreArtista);		
 				} catch (Exception e) {
@@ -139,7 +137,7 @@ public class Metodos {
 	        } else if (opcion.contains("album")) {
 	            System.out.println("Has seleccionado Album.");
 	            try {
-					System.out.println("Introduce el nombre del album a buscar:");
+					System.out.println("Introduce el nombre del album que desea modificar:");
 					String nombreArtista = sc.nextLine();
 					RedisManager.modificarAlbum(jedis, nombreArtista);
 				} catch (Exception e) {
@@ -148,7 +146,7 @@ public class Metodos {
 	        } else if (opcion.contains("playlist")) {
 	            System.out.println("Has seleccionado Playlist.");
 	            try {
-					System.out.println("Introduce el nombre de la playlist a buscar:");
+					System.out.println("Introduce el nombre de la Playlist que desea modificar:");
 					String nombreArtista = sc.nextLine();
 					RedisManager.modificarPlaylist(jedis, nombreArtista);
 				} catch (Exception e) {
