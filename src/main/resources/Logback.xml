@@ -1,0 +1,39 @@
+<configuration>
+
+	<appender name="Consola" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d %green([%thread]) %highlight(%level) %cyan(%logger{50}) - %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+	
+	<appender name="Fichero" class="ch.qos.logback.core.FileAppender">
+		<file>redis.log</file>
+		<encoder>
+			<pattern>%d [%thread] %-5level %-40logger{50} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+
+    <!-- Configuración de log para el cliente Redis Jedis -->
+    <logger name="redis.clients" level="INFO">
+		<appender-ref ref="Fichero"/> 
+		<appender-ref ref="Consola"/> 
+	</logger>
+
+    <!-- Configuración de log para otras dependencias, si es necesario -->
+    <logger name="org.apache.httpcomponents" level="INFO">
+		<appender-ref ref="Fichero"/> 
+		<appender-ref ref="Consola"/> 
+	</logger>
+    <logger name="se.michaelthelin.spotify" level="INFO">
+		<appender-ref ref="Fichero"/> 
+		<appender-ref ref="Consola"/> 
+	</logger>
+
+    <!-- Configuración del log root -->
+  <root level="INFO">
+    <appender-ref ref="Consola"/>
+    <appender-ref ref="Fichero"/>
+</root>
+</configuration>

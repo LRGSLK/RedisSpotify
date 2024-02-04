@@ -42,7 +42,7 @@ public class Metodos {
 		Scanner sc = new Scanner(System.in);
 		String accessToken = null;
 		try {
-			accessToken = APISpotify.getAccessToken();
+			accessToken = APISpotify.obtenerAcceso();
 			String opcion;	
 		do {
 	        System.out.println("Ingresa el nombre de la clase para saber en qué tabla insertar:");
@@ -54,7 +54,7 @@ public class Metodos {
 	            try {
 					System.out.println("Introduce el nombre del artista a buscar:");
 					String nombre = sc.nextLine();
-					lista = APISpotify.seachArtistByName(accessToken, nombre);
+					lista = APISpotify.buscarArtistaPorNombre(accessToken, nombre);
 					System.out.println(lista);
 					RedisManager.guardarArtistaRedis(jedis, lista);
 				} catch (Exception e) {
@@ -78,7 +78,7 @@ public class Metodos {
 	            try {
 					System.out.println("Introduce el nombre del album a buscar:");
 					String nombre = sc.nextLine();
-					lista = APISpotify.searchAlbumByName(accessToken, nombre);
+					lista = APISpotify.buscarAlbumPorNombre(accessToken, nombre);
 					System.out.println(lista);
 					RedisManager.guardarAlbumRedis(jedis, lista);
 				} catch (Exception e) {
@@ -90,7 +90,7 @@ public class Metodos {
 	            try {
 					System.out.println("Introduce el nombre del playlist a buscar:");
 					String nombre = sc.nextLine();
-					lista = APISpotify.searchPlaylistsByName(accessToken, nombre);
+					lista = APISpotify.buscarPlayListPorNombre(accessToken, nombre);
 					System.out.println(lista);
 					RedisManager.guardarPlaylistRedis(jedis, lista);
 				} catch (Exception e) {
@@ -111,7 +111,7 @@ public class Metodos {
 		Scanner sc = new Scanner(System.in);
 		String accessToken = null;
 		try {
-			accessToken = APISpotify.getAccessToken();
+			accessToken = APISpotify.obtenerAcceso();
 			String opcion;	
 		do {
 	        System.out.println("Ingresa el nombre de la clase para saber en qué tabla insertar:");
@@ -169,7 +169,7 @@ public class Metodos {
 		Scanner sc = new Scanner(System.in);
 		String accessToken = null;
 		try {
-			accessToken = APISpotify.getAccessToken();
+			accessToken = APISpotify.obtenerAcceso();
 			String opcion;	
 		do {
 	        System.out.println("Ingresa el nombre de la clase para saber en qué tabla insertar:");
@@ -227,7 +227,7 @@ public class Metodos {
 		String accessToken = null;
 		int op;
 		try {
-			accessToken = APISpotify.getAccessToken();
+			accessToken = APISpotify.obtenerAcceso();
 			String opcion;	
 			do {
 		        System.out.println("¿Que clase desea consultar?");

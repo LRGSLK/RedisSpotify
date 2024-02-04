@@ -5,7 +5,7 @@
  */
 package RedisSpotify.Project;
 
-import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -14,12 +14,17 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
 /**
  * Clase que gestiona las operaciones en la base de datos Redis para artistas, canciones, álbumes y playlists.
  */
 public class RedisManager {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RedisManager.class);
 	/**
      * Método principal de la clase (main), que no se utiliza en este contexto.
      *
@@ -28,7 +33,6 @@ public class RedisManager {
 	public static void main(String[] args) {}
 	
 	
-	//--------------------------------------------ARTISTAS
 	//--------------------------------------------ARTISTAS
     /**
      * Guarda un objeto Artista en Redis.
@@ -50,9 +54,10 @@ public class RedisManager {
 		        t.hmset(artistKey, artistData);
 		        t.sadd(indexKey, artistKey);
 		        t.exec();
+		        LOGGER.info("Artista guardado satisfactoriamente ");
 		    } catch (Exception e) {
 		        t.discard();
-		        e.printStackTrace();
+		        LOGGER.error("Error al guardar el artista "+e.getMessage());
 		    }
 		}
 	/**
@@ -84,7 +89,7 @@ public class RedisManager {
 	        try {
 	            t.hmset(artistKey, artistData);
 	            t.exec();
-	            System.out.println("Artista modificado exitosamente.");
+	            LOGGER.info("Artista modificado exitosamente.");
 	            Artista artistaModificado = new Artista(
 	                artistData.get("id"),
 	                artistData.get("nombre"),
@@ -92,15 +97,15 @@ public class RedisManager {
 	                Integer.parseInt(artistData.get("popularidad")),
 	                Integer.parseInt(artistData.get("seguidores"))
 	            );
-	            System.out.println("Artista modificado: ");
+	            LOGGER.info("Artista modificado: ");
 	            System.out.println(artistaModificado);
 	        } catch (Exception e) {
 	            t.discard();
 	            e.printStackTrace();
-	            System.err.println("Error al modificar el artista en Redis.");
+	            LOGGER.error("Error al modificar el artista en Redis.");
 	        }
 	    } else {
-	        System.err.println("Artista no encontrado en Redis.");
+	        LOGGER.warn("Artista no encontrado en Redis.");
 	    }
 	}
 	/**
@@ -137,14 +142,13 @@ public class RedisManager {
 	            String indexKey = "indices:artistas";
 	            t.srem(indexKey, artistKey);
 	            t.exec();
-	            System.out.println("Artista eliminado exitosamente.");
+	            LOGGER.info("Artista eliminado exitosamente.");
 	        } catch (Exception e) {
 	            t.discard();
-	            e.printStackTrace();
-	            System.err.println("Error al eliminar el artista de Redis.");
+	            LOGGER.error("Error al eliminar el artista de Redis."+e.getMessage());
 	        }
 	    } else {
-	        System.err.println("Artista no encontrado en Redis.");
+	        LOGGER.warn("Artista no encontrado en Redis.");
 	    }
 	}
 	//--------------------------------------------CANCIONES
@@ -166,9 +170,10 @@ public class RedisManager {
 	        t.hmset(cancionKey, cancionData);
 	        t.sadd(indexKey, cancionKey);
 	        t.exec();
+	        LOGGER.info("Cancion guardada satisfactoriamente");
 	    } catch (Exception e) {
 	        t.discard();
-	        e.printStackTrace();
+	        LOGGER.error("Error al guardar la cancion "+e.getMessage());
 	    }
 	}
 	/**
@@ -193,15 +198,15 @@ public class RedisManager {
                 cancionData.put("artistas", artista);
                 t.hmset(cancionKey, cancionData);
                 t.exec();
-                System.out.println("Canción modificada exitosamente.");
+                LOGGER.info("Canción modificada exitosamente.");
                 System.out.println(cancionData);
             } catch (Exception e) {
                 t.discard();
                 e.printStackTrace();
-                System.err.println("Error al modificar la canción en Redis.");
+                LOGGER.error("Error al modificar la canción en Redis.");
             }
         } else {
-            System.err.println("Canción no encontrada en Redis.");
+        	LOGGER.warn("Canción no encontrada en Redis.");
         }
     }
 	/**
@@ -238,14 +243,14 @@ public class RedisManager {
                 String indexKey = "indices:canciones";
                 t.srem(indexKey, cancionKey);
                 t.exec();
-                System.out.println("Canción eliminada exitosamente.");
+                LOGGER.info("Canción eliminada exitosamente.");
             } catch (Exception e) {
                 t.discard();
                 e.printStackTrace();
-                System.err.println("Error al eliminar la canción de Redis.");
+                LOGGER.error("Error al eliminar la canción de Redis.");
             }
         } else {
-            System.err.println("Canción no encontrada en Redis.");
+        	LOGGER.warn("Canción no encontrada en Redis.");
         }
     }
 	//--------------------------------------------ALBUM
@@ -279,9 +284,10 @@ public class RedisManager {
                 t.hmset("cancion:" + cancion.getId(), cancionData);
             }
             t.exec();
+            LOGGER.info("Album guardado satisfactoriamente");
         } catch (Exception e) {
             t.discard();
-            e.printStackTrace();
+            LOGGER.error("Error al guardar el Album. "+e.getMessage());
         }
     }
     /**
@@ -306,16 +312,16 @@ public class RedisManager {
                 albumData.put("fechaLanzamiento", fecha);
                 t.hmset(albumKey, albumData);
                 t.exec();
-                System.out.println("Álbum modificado exitosamente.");
+                LOGGER.info("Álbum modificado exitosamente.");
                 System.out.println("Álbum modificado: ");
                 System.out.println(albumData);
             } catch (Exception e) {
                 t.discard();
-                e.printStackTrace();
-                System.err.println("Error al modificar el álbum en Redis.");
+            
+                LOGGER.error("Error al modificar el álbum en Redis."+e.getMessage());
             }
         } else {
-            System.err.println("Álbum no encontrado en Redis.");
+            LOGGER.warn("Álbum no encontrado en Redis.");
         }
     }
 	/**
@@ -352,14 +358,14 @@ public class RedisManager {
                 String indexKey = "indices:albumes";
                 t.srem(indexKey, albumKey);
                 t.exec();
-                System.out.println("Álbum eliminado exitosamente.");
+                LOGGER.info("Álbum eliminado exitosamente.");
             } catch (Exception e) {
                 t.discard();
                 e.printStackTrace();
-                System.err.println("Error al eliminar el álbum de Redis.");
+                LOGGER.error("Error al eliminar el álbum de Redis.");
             }
         } else {
-            System.err.println("Álbum no encontrado en Redis.");
+        	LOGGER.warn("Álbum no encontrado en Redis.");
         }
     }
 	//--------------------------------------------PLAYLIST
@@ -383,9 +389,11 @@ public class RedisManager {
 	        t.hmset(playlistKey, playlistData);
 	        t.sadd(indexKey, playlistKey);
 	        t.exec();
+	        LOGGER.info("Playlist guardada satisfactoriamente");
 	    } catch (Exception e) {
 	        t.discard();
-	        e.printStackTrace();
+	        LOGGER.error("Error al guardar la playlist");
+
 	    }
 	}
 	/**
@@ -409,16 +417,16 @@ public class RedisManager {
                 playlistData.put("nombre", nombre);
                 t.hmset(playlistKey, playlistData);
                 t.exec();
-                System.out.println("Playlist modificada exitosamente.");
+                LOGGER.info("Playlist modificada exitosamente.");
                 System.out.println("Playlist modificada: ");
                 System.out.println(playlistData);
             } catch (Exception e) {
                 t.discard();
                 e.printStackTrace();
-                System.err.println("Error al modificar la playlist en Redis.");
+                LOGGER.error("Error al modificar la playlist en Redis.");
             }
         } else {
-            System.err.println("Playlist no encontrada en Redis.");
+        	LOGGER.warn("Playlist no encontrada en Redis.");
         }
     }
 	 /**
@@ -455,14 +463,14 @@ public class RedisManager {
                 String indexKey = "indices:playlists";
                 t.srem(indexKey, playlistKey);
                 t.exec();
-                System.out.println("Playlist eliminada exitosamente.");
+                LOGGER.info("Playlist eliminada exitosamente.");
             } catch (Exception e) {
                 t.discard();
                 e.printStackTrace();
-                System.err.println("Error al eliminar la playlist de Redis.");
+                LOGGER.error("Error al eliminar la playlist de Redis.");
             }
         } else {
-            System.err.println("Playlist no encontrada en Redis.");
+        	LOGGER.warn("Playlist no encontrada en Redis.");
         }
     }
     //-------------------------------------------CONSULTAS-ARTISTAS

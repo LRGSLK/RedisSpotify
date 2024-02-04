@@ -16,26 +16,35 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 /**
- * Clase que proporciona métodos para interactuar con la API de Spotify.
+ * La clase  APISpotify ofrece una serie de métodos estáticos para interactuar con la API de Spotify.
+ * Proporciona funcionalidades para autenticarse mediante el flujo de credenciales de cliente y realizar
+ * búsquedas de artistas, playlists, álbumes y canciones específicas dentro del catálogo de Spotify.
+ * Utiliza HTTP para las solicitudes y JSON para el manejo de las respuestas.
+ *
+ * Requiere las dependencias de Apache HTTP para realizar las solicitudes HTTP y Gson para el análisis de JSON.
  */
 public class APISpotify {
+	private static final Logger LOGGER = LoggerFactory.getLogger(APISpotify.class);
 
 	private static final String clientId = "543191e2fffa48ba958c42ea57c49ec0";
 	private static final String clientSecret = "a4a4d78e02f04bf68f301a9ae1f627bb";
 
-	/**
-     * Obtiene un token de acceso utilizando el flujo de credenciales de cliente.
+	 /**
+     * Obtiene un token de acceso de la API de Spotify utilizando el flujo de credenciales de cliente.
+     * Este token es necesario para realizar solicitudes autenticadas a los endpoints de la API de Spotify.
      *
-     * @return el token de acceso
-     * @throws Exception si ocurre un error durante la solicitud
+     * @return Una cadena que representa el token de acceso.
+     * @throws Exception Si ocurre un error durante la solicitud HTTP o el análisis de la respuesta.
      */
-	static String getAccessToken() throws Exception {
+	static String obtenerAcceso() throws Exception {
 		HttpClient client = HttpClients.createDefault();
 		HttpPost post = new HttpPost("https://accounts.spotify.com/api/token");
 
@@ -51,8 +60,15 @@ public class APISpotify {
 		return jsonObject.get("access_token").getAsString();
 	}
 
-
-	static Artista seachArtistByName(String accessToken, String nombreArtista) {
+	   /**
+     * Busca un artista en Spotify por nombre y devuelve un objeto  Artista con los detalles del primer resultado.
+     *
+     * @param accessToken Token de acceso válido para la API de Spotify.
+     * @param nombreArtista El nombre del artista a buscar.
+     * @return Un objeto  Artista con los detalles del artista encontrado, o null si no se encuentra ninguno.
+     * @throws Exception Si ocurre un error durante la solicitud HTTP o el análisis de la respuesta.
+     */
+	static Artista buscarArtistaPorNombre(String accessToken, String nombreArtista) {
 	    Artista artista = null;
 	    try {
 	        HttpClient client = HttpClients.createDefault();
@@ -78,13 +94,21 @@ public class APISpotify {
 	                artista =new Artista(id, nombre, genero, popularidad, seguidores);
 	        }
 	    } catch (Exception e) {
-	        e.printStackTrace();
+	    	LOGGER.error("Error en la busqueda de artista por nombre " + e.getMessage());
 	    }
 
 	    return artista;
 	}
 
-	static Playlist searchPlaylistsByName(String accessToken, String playlistName) {
+	 /**
+     * Busca playlists en Spotify por nombre y devuelve un objeto  Playlist con los detalles del primer resultado.
+     *
+     * @param accessToken Token de acceso válido para la API de Spotify.
+     * @param playlistName El nombre de la playlist a buscar.
+     * @return Un objeto  Playlist con los detalles de la playlist encontrada, o code null si no se encuentra ninguna.
+     * @throws Exception Si ocurre un error durante la solicitud HTTP o el análisis de la respuesta.
+     */
+	static Playlist buscarPlayListPorNombre(String accessToken, String playlistName) {
 	    Playlist playlist = null;
 	    try {
 	        // Primero, buscar playlists por nombre
@@ -138,12 +162,20 @@ public class APISpotify {
 	            playlist = new Playlist(id, nombre, canciones);
 	        }
 	    } catch (Exception e) {
-	        e.printStackTrace();
+	    	LOGGER.error("Error en la busqueda de Playlist por nombre " + e.getMessage());
 	    }
 
 	    return playlist;
 	}
-	 public static Album searchAlbumById(String accessToken, String albumId) {
+	/**
+     * Busca un álbum en Spotify por ID y devuelve un objeto Album con los detalles del álbum.
+     *
+     * @param accessToken Token de acceso válido para la API de Spotify.
+     * @param albumId El ID único del álbum a buscar.
+     * @return Un objeto Album con los detalles del álbum, o  null si no se encuentra.
+     * @throws Exception Si ocurre un error durante la solicitud HTTP o el análisis de la respuesta.
+     */
+	 public static Album buscarAlbumPorID(String accessToken, String albumId) {
 	        Album album = null;
 	        try {
 	            // Solicitar detalles del álbum
@@ -193,12 +225,20 @@ public class APISpotify {
 	            album = new Album(id, nombre, artistas, fechaLanzamiento, canciones);
 
 	        } catch (Exception e) {
-	            e.printStackTrace();
+		    	LOGGER.error("Error en la busqueda de album por ID " + e.getMessage());
 	        }
 
 	        return album;
 	    }
-	 public static Album searchAlbumByName(String accessToken, String albumName) {
+	 /**
+	     * Busca álbumes en Spotify por nombre y devuelve un objeto code Album con los detalles del primer resultado.
+	     *
+	     * @param accessToken Token de acceso válido para la API de Spotify.
+	     * @param albumName El nombre del álbum a buscar.
+	     * @return Un objeto  Album con los detalles del álbum encontrado, o  null si no se encuentra ninguno.
+	     * @throws Exception Si ocurre un error durante la solicitud HTTP o el análisis de la respuesta.
+	     */
+	 public static Album buscarAlbumPorNombre(String accessToken, String albumName) {
 		    Album album = null;
 		    try {
 		        // Buscar álbumes por nombre
@@ -217,14 +257,22 @@ public class APISpotify {
 		        if (items.size() > 0) {
 		            JsonObject item = items.get(0).getAsJsonObject();
 		            String id = item.get("id").getAsString();
-		            return searchAlbumById(accessToken, id);
+		            return buscarAlbumPorID(accessToken, id);
 		        }
 		    } catch (Exception e) {
-		        e.printStackTrace();
+		    	LOGGER.error("Error en la busqueda de album por nombre " + e.getMessage());
 		    }
 
 		    return album;
 		}
+	 /**
+	     * Busca canciones en Spotify por nombre y devuelve un objeto  Cancion con los detalles del primer resultado.
+	     *
+	     * @param accessToken Token de acceso válido para la API de Spotify.
+	     * @param songName El nombre de la canción a buscar.
+	     * @return Un objeto  Cancion con los detalles de la canción encontrada, o  null si no se encuentra ninguna.
+	     * @throws Exception Si ocurre un error durante la solicitud HTTP o el análisis de la respuesta.
+	     */
 	  static Cancion searchSongsByName(String accessToken, String songName) {
 		    Cancion cancion = null;
 		    try {
@@ -261,7 +309,7 @@ public class APISpotify {
 		           
 		        }
 		    } catch (Exception e) {
-		        e.printStackTrace();
+		    	LOGGER.error("Error en la busqueda de cancion por nombre " + e.getMessage());
 		    }
 
 		    return cancion;
