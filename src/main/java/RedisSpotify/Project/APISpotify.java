@@ -19,6 +19,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+
 public class APISpotify {
 
 	private static final String clientId = "543191e2fffa48ba958c42ea57c49ec0";
