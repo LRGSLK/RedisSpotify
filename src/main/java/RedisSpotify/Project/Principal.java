@@ -1,113 +1,67 @@
 package RedisSpotify.Project;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
+
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Transaction;
 
-/**
- * Clase principal que ejecuta la aplicación de búsqueda de artistas en Spotify
- * y almacena la información en una base de datos Redis.
- *
- * @version 1.0
- */
 public class Principal {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        int num=1;
+        int opcion;
+        Jedis jedis =null;
 
-	/**
-	 * Método principal que inicia la aplicación.
-	 *
-	 * @param args Argumentos de línea de comandos (no utilizado).
-	 */
-	public static void main(String[] args) {
-		try (Jedis jedis = new Jedis("localhost", 6379)) {
-			List<Artista> artistIds = null;
-			String accessToken = null;
+        System.out.println("Bienvenido a la base de datos de Redis");
+        System.out.println("Por favor, selecciona en qué base de datos quieres trabajar (0-15): ");
+        int dbIndex;
+        do {
+            dbIndex = scanner.nextInt();
+            if (dbIndex >= 0 && dbIndex <= 15) {
+                jedis=Metodos.creacionBD(dbIndex);
+                break;
+            } else {
+                System.out.println("Número inválido. Por favor, selecciona un número entre 0 y 15.");
+            }
+        } while (true);       
+        do {
+            System.out.println("Seleccione alguna de las opciones disponibles: ");
+            System.out.println("1. Insertar un objeto.");
+            System.out.println("2. Modificar un objeto.");
+            System.out.println("3. Borrar un objeto.");
+            System.out.println("4. Realizar una consulta.");
+            System.out.println("5. Borrar la base de datos actual.");
+            System.out.println("6. Salir");
+            opcion = scanner.nextInt();
 
-			try {
-				// Obtener el token de acceso de Spotify
-				accessToken = APISpotify.getAccessToken();
-				Scanner scanner = new Scanner(System.in);
-				System.out.println("Introduce el nombre del album a buscar:");
-				String nombreAlbum = scanner.nextLine();
-				Album album = APISpotify.searchAlbumByName(accessToken, nombreAlbum);
-				System.out.println(album.toString());
-
-				Scanner scanner1 = new Scanner(System.in);
-				System.out.println("Introduce el nombre de la cacion a buscar:");
-				String nombreCacion = scanner1.nextLine();
-				Cancion cancion = APISpotify.searchSongsByName(accessToken, nombreCacion);
-				System.out.println(cancion.toString());
-
-				Scanner scanner2 = new Scanner(System.in);
-				System.out.println("Introduce el nombre de la Playlist a buscar:");
-				String nombrePlaylist = scanner2.nextLine();
-				Playlist playlist = APISpotify.searchPlaylistsByName(accessToken, nombrePlaylist);
-				System.out.println(playlist.toString());
-
-				Scanner scanner3 = new Scanner(System.in);
-				System.out.println("Introduce el nombre del Artista a buscar:");
-				String nombreArtista = scanner3.nextLine();
-				Artista artista = APISpotify.seachArtistByName(accessToken, nombreArtista);
-				System.out.println(artista.toString());
-
-			} catch (Exception e) {
-				// Manejar cualquier excepción ocurrida durante la ejecución
-				e.printStackTrace();
-			}
-
-		}
-
-	}
-
-	/**
-	 * Guarda la información de un artista en una base de datos Redis.
-	 *
-	 * @param jedis   Cliente Redis.
-	 * @param artista Objeto Artista que se va a almacenar.
-	 */
-	private static void guardarArtistaRedis(Jedis jedis, Artista artista) {
-		String artistKey = "artista:" + artista.getNombre();
-		Map<String, String> artistData = new HashMap<>();
-		artistData.put("IdArtista", artista.getId());
-		artistData.put("genero", artista.getGenero());
-		artistData.put("popularidad", String.valueOf(artista.getPopularidad()));
-		artistData.put("seguidores", String.valueOf(artista.getSeguidores()));
-
-		String indexKey = "indices:artistas";
-		// Iniciar una transacción para almacenar la información del artista en Redis
-		Transaction t = jedis.multi();
-		try {
-			// Almacenar la información del artista
-			t.hmset(artistKey, artistData);
-			// Agregar la clave del artista al índice
-			t.sadd(indexKey, artistKey);
-
-			// Ejecutar la transacción
-			t.exec();
-		} catch (Exception e) {
-			// En caso de error, descartar la transacción
-			t.discard();
-			e.printStackTrace();
-		}
-	}
-
-	private static void actualizarGeneroArtistaRedis(Jedis jedis, String artistaId, String nuevoGenero) {
-		String artistKey = "artista:" + artistaId;
-
-		// Iniciar una transacción para actualizar la información del artista en Redis
-		Transaction t = jedis.multi();
-		try {
-			// Actualizar solo el campo 'genero' del artista
-			t.hset(artistKey, "genero", nuevoGenero);
-
-			// Ejecutar la transacción
-			t.exec();
-		} catch (Exception e) {
-			// En caso de error, descartar la transacción
-			t.discard();
-			e.printStackTrace();
-		}
-	}
+            switch (opcion) {
+                case 1:
+                    System.out.println("Has seleccionado la opción 1.");
+                    Metodos.insertar(jedis);
+                    break;
+                case 2:
+                    System.out.println("Has seleccionado la opción 2.");
+                    Metodos.modificar(jedis);
+                    break;
+                case 3:
+                    System.out.println("Has seleccionado la opción 3.");
+                    Metodos.borrar(jedis);
+                    break;
+                case 4:
+                    System.out.println("Has seleccionado la opción 4.");
+                    Metodos.consulta(jedis);
+                    break;
+                case 5:
+                    System.out.println("Has seleccionado la opción 5.");
+                    Metodos.borrarBD(jedis);
+                    break;
+                case 6:
+                    System.out.println("Saliendo del programa. ¡Hasta luego!");
+                    jedis.close();
+                    break;
+                default:
+                    System.out.println("Opción no valida. Por favor, selecciona una opción del 1 al 8.");
+            }
+        } while (opcion != 7);
+        scanner.close();
+    }
 }

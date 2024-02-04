@@ -1,3 +1,6 @@
+/**
+ * La clase {@code APISpotify} proporciona métodos para interactuar con la API de Spotify.
+ */
 package RedisSpotify.Project;
 
 import java.net.URLEncoder;
@@ -18,14 +21,20 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-
+/**
+ * Clase que proporciona métodos para interactuar con la API de Spotify.
+ */
 public class APISpotify {
 
 	private static final String clientId = "543191e2fffa48ba958c42ea57c49ec0";
 	private static final String clientSecret = "a4a4d78e02f04bf68f301a9ae1f627bb";
 
-
+	/**
+     * Obtiene un token de acceso utilizando el flujo de credenciales de cliente.
+     *
+     * @return el token de acceso
+     * @throws Exception si ocurre un error durante la solicitud
+     */
 	static String getAccessToken() throws Exception {
 		HttpClient client = HttpClients.createDefault();
 		HttpPost post = new HttpPost("https://accounts.spotify.com/api/token");
